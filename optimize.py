@@ -68,34 +68,6 @@ valueDic = {
 
 noItemsForCostFunction = 6
 
-# dataList = [
-    # ["aa", 9, 5, 10, 0, 2],
-    # ["bb", 9, 5, 10, 0, 2],
-    # ["cc", 9, 5, 10, 0, 2],
-    # ["dd", 9, 5, 10, 0, 2],
-    # ["ee", 3, 5, 10, 0, 2],
-    # ["ff", 9, 5, 10, 0, 2],
-    # ["gg", 9, 5, 10, 0, 2],
-    # ["hh", 9, 5, 10, 0, 2],
-    # ["ii", 9, 5, 10, 5, 2],
-    # ["jj", 9, 5, 10, 0, 2],
-    # ["kk", 9, 5, 10, 0, 2],
-    # ["ll", 9, 5, 5, 0, 2],
-    # ["mm", 9, 5, 5, 0, 2],
-    # ["nn", 9, 5, 5, 0, 2],
-    # ["oo", 9, 5, 5, 0, 2],
-    # ["pp", 9, 5, 10, 0, 2],
-    # ["qq", 9, 5, 10, 0, 2],
-    # ["rr", 9, 7, 10, 0, 2],
-    # ["ss", 9, 5, 10, 0, 2],
-    # ["tt", 9, 5, 10, 0, 2],
-    # ["uu", 9, 5, 10, 0, 2],
-    # ["vv", 9, 5, 10, 0, 2],
-    # ["ww", 3, 5, 10, 0, 2],
-    # ["xx", 9, 5, 10, 0, 2],
-    # ["yy", 9, 5, 10, 0, 2]
-    # ]
-
 
 def dbgout(string):
     if (debug == 1):
@@ -128,7 +100,7 @@ def outputScore(targetNo, dataDic, weights, valueDic):
             overallScore += value
         else:
             break
-        dbgout("index: %d - item: %s - score: %s - total: %s" % (i, item, value, overallScore, names))
+        dbgout("index: %d - item: %s - score: %s - total: %s - names: %s" % (i, item, value, overallScore, names))
 
     # return score
     return overallScore, names
@@ -144,31 +116,36 @@ def optimize(noItems, inputDataDic, valueDic):
     score = 10000000.0
     weightIndex = 0
     cnt = 0
+    names = "none"
     
     while (1):
         cnt += 1
-        newScore = outputScore(noItems, inputDataDic, weights, valueDic)
+        newScore, newNames = outputScore(noItems, inputDataDic, weights, valueDic)
         if newScore <= score:
             print(newScore)
+            print(newNames)
             print(weights)
             bestWeights = weights
             score = newScore
+            names = newNames
             delta = 1
         else:
-            # cycle weight index
+            # cycle weight index, simple heuristic, would deserve some improvement
             weightIndex = (weightIndex + 1) % 5
             delta = 7
         weights = update(weights, weightIndex, delta)
         dbgout(weights)
-        if cnt == 10000000:
+        
+        # not sure we can identify there is one single attraction basin, better to iterate for some time
+        if cnt == 1000000:
             break
     
-    return bestWeights, score
+    return bestWeights, score, names
 
 
 
 # main
-debug = True
+debug = False
 
  
 # opening the file using "with" statement
@@ -182,11 +159,13 @@ ts = current_datetime.timestamp()
 if debug == True:
     traceFile = open("optimize_log_%s.txt" % ts, 'w', encoding='utf-8')
 
-w, s = optimize(6, dataDic, valueDic)
-print("best weights")
+w, s, n = optimize(noItemsForCostFunction, dataDic, valueDic)
+print("best weights: ")
 print(w)
-print("score")
-print(s)
+print("score: %d" % s)
+print("names: %s" % n)
+
+
     
 
 
